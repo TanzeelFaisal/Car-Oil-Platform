@@ -55,52 +55,12 @@ app.delete('/customers/:id', (req, res) => {
     });
 });
 
-app.get('/customer/:phoneNumber', (req, res) => {
-    const phoneNumber = req.params.phoneNumber;
-    pool.query('SELECT * FROM Customer WHERE number = ?', [phoneNumber], (error, customerResults) => {
-        if (error) {
-            res.status(500).json({ error: 'Error fetching customer' });
-            return;
-        }
-
-        if (customerResults.length === 0) {
-            res.status(404).json({ error: 'Customer not found' });
-            return;
-        }
-
-        const customerId = customerResults[0].id;
-        const customerName = customerResults[0].name;
-
-        pool.query('SELECT * FROM Sales WHERE customer_id = ?', [customerId], (error, salesResults) => {
-            if (error) {
-                res.status(500).json({ error: 'Error fetching sales' });
-                return;
-            }
-
-            pool.query('SELECT * FROM Car WHERE customer_id = ?', [customerId], (error, carResults) => {
-                if (error) {
-                    res.status(500).json({ error: 'Error fetching cars' });
-                    return;
-                }
-
-                res.json({
-                    customer: {
-                        id: customerId,
-                        name: customerName,
-                        number: phoneNumber
-                    },
-                    sales: salesResults,
-                    cars: carResults
-                });
-            });
-        });
-    });
-});
-
-app.get('/customer/:customerId/cars', (req, res) => {
+app.get('/customers/:customerId/cars', (req, res) => {
     const customerId = req.params.customerId;
-    pool.query('SELECT Car.reg_number FROM Car INNER JOIN Customer ON Car.customer_id = Customer.id WHERE Car.customer_id = ?', [customerId], (error, results) => {
+    console.log('hi')
+    pool.query('SELECT * FROM Car INNER JOIN Customer ON Car.customer_id = Customer.id WHERE Car.customer_id = ?', [customerId], (error, results) => {
         if (error) {
+            console.log(error)
             res.status(500).json({ error: 'Error fetching customer cars' });
         } else {
             res.json(results);
@@ -123,46 +83,52 @@ app.post('/customer/:customerId/cars', (req, res) => {
     );
 });
 
+app.get('/sales', (req, res) => {
+    pool.query('SELECT * FROM Sales', (err, result) => {
+        if (err) {
+            console.error('Error fetching sales:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        } else {
+            res.status(200).json(result);
+        }
+    });
+});
+
+
 app.post('/sales', (req, res) => {
-    const { customerPhoneNumber, carRegNumber, billAmount } = req.body;
-
-    pool.query('SELECT * FROM Customer WHERE number = ?', [customerPhoneNumber], (error, customerResults) => {
-        if (error) {
-            res.status(500).json({ error: 'Error fetching customer' });
-            return;
+    const newSale = req.body;
+    pool.query('INSERT INTO Sales SET ?', newSale, (err, result) => {
+        if (err) {
+            console.error('Error adding sale:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        } else {
+            res.status(201).json({ message: 'Sale added successfully', id: result.insertId });
         }
+    });
+});
 
-        if (customerResults.length === 0) {
-            res.status(404).json({ error: 'Customer not found' });
-            return;
+app.put('/sales/:id', (req, res) => {
+    const saleId = req.params.id;
+    const updatedSale = req.body;
+    pool.query('UPDATE Sales SET ? WHERE id = ?', [updatedSale, saleId], (err, result) => {
+        if (err) {
+            console.error('Error updating sale:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        } else {
+            res.status(200).json({ message: 'Sale updated successfully' });
         }
+    });
+});
 
-        const customerId = customerResults[0].id;
-
-        pool.query('SELECT Car.reg_number FROM Car INNER JOIN Customer ON Car.customer_id = Customer.id WHERE Customer.id = ? AND Car.reg_number = ?', [customerId, carRegNumber], (error, carResults) => {
-            if (error) {
-                res.status(500).json({ error: 'Error fetching car' });
-                return;
-            }
-
-            if (carResults.length === 0) {
-                res.status(404).json({ error: 'Car not found for this customer' });
-                return;
-            }
-
-            const carRegNumber = carResults[0].reg_number;
-
-            pool.query('INSERT INTO Sales (customer_id, car_reg_number, bill_amount) VALUES (?, ?, ?)',
-                [customerId, carRegNumber, billAmount],
-                (error, results) => {
-                    if (error) {
-                        res.status(500).json({ error: 'Error adding sale' });
-                    } else {
-                        res.json({ message: 'Sale added successfully' });
-                    }
-                }
-            );
-        });
+app.delete('/sales/:id', (req, res) => {
+    const saleId = req.params.id;
+    pool.query('DELETE FROM Sales WHERE id = ?', saleId, (err, result) => {
+        if (err) {
+            console.error('Error deleting sale:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        } else {
+            res.status(204).end();
+        }
     });
 });
 

@@ -10,7 +10,9 @@ function Home() {
     const [customerId, setCustomerId] = useState('');
     const [productId, setProductId] = useState('');
     const [quantity, setQuantity] = useState('');
-    const [car, setCar] = useState('');
+    const [car, setCar] = useState({});
+    const [currentMileage, setCurrentMileage] = useState('');
+    const [nextMileage, setNextMileage] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSale, setSelectedSale] = useState(null);
     const [carModal, setCarModal] = useState(false);
@@ -40,7 +42,12 @@ function Home() {
 
     const fetchSales = async () => {
         try {
-            const response = await fetch('http://localhost:3001/sales');
+            const response = await fetch('http://localhost:3001/sales', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });    
             const data = await response.json();
             setSales(data);
         } catch (error) {
@@ -57,10 +64,20 @@ function Home() {
             console.error('Error fetching customers:', error);
         }
     };
+    
+    const fetchUserCars = async (customerId) => {
+        try {
+            const response = await fetch(`http://localhost:3001/customers/${customerId}/cars`);
+            const data = await response.json();
+            setUserCars(data);
+        } catch (error) {
+            console.error('Error fetching user cars:', error);
+        }
+    };
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch('http://localhost:3001/products');
+            const response = await fetch('http://localhost:3001/oils');
             const data = await response.json();
             setProducts(data);
         } catch (error) {
@@ -82,14 +99,27 @@ function Home() {
     }
 
     const handleAddSale = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
+        const selectedProduct = products.find(product => product.id === parseInt(productId));
+        
+        if (selectedProduct && parseInt(quantity) > selectedProduct.stock) {
+            alert('Stock is lesser than the quantity entered!');
+            return;
+        }
+    
+        const totalAmount = selectedProduct.price * parseInt(quantity);
+        console.log(car)
         const newSale = {
-            customerId,
-            productId,
-            quantity: parseInt(quantity),
-            car,
+            customer_id: customerId,
+            oil_id: productId,
+            oil_quantity: parseInt(quantity),
+            car_reg_number: car,
+            current_mileage: currentMileage,
+            next_mileage: nextMileage,
+            bill_amount: totalAmount,
             date: new Date().toLocaleDateString()
         };
+    
         try {
             const response = await fetch('http://localhost:3001/sales', {
                 method: 'POST',
@@ -165,20 +195,19 @@ function Home() {
         const product = products.find((prod) => prod.id == sale.productId);
         return (
             customer.name.toLowerCase().includes(searchTerm) ||
-            customer.phoneNumber.toLowerCase().includes(searchTerm) ||
             product.name.toLowerCase().includes(searchTerm) ||
             sale.date.toLowerCase().includes(searchTerm)
         );
     });
 
     useEffect(() => {
-        console.log(sales)
     }, [handleAddSale]);
 
     const showCarModal = (e) => {
         setShow(false)
         setCarModal(true)
     };
+
     return (
         <div className='container'>
             <div className="crud shadow-lg p-3 mb-5 mt-5 bg-body rounded">
@@ -207,9 +236,12 @@ function Home() {
                             <thead>
                                 <tr>
                                     <th>Customer Name</th>
-                                    <th>Car Name</th>
+                                    <th>Car Registration</th>
                                     <th>Product Name</th>
+                                    <th>Quantity</th>
                                     <th>Total Amount</th>
+                                    <th>Current Mileage</th>
+                                    <th>Next Mileage</th>
                                     <th>Date</th>
                                     <th>Actions</th>
                                 </tr>
@@ -223,9 +255,12 @@ function Home() {
                                     return (
                                         <tr key={index}>
                                             <td>{customer ? customer.name : ''}</td>
-                                            <td>{sale.car}</td>
+                                            <td>{sale.car.reg_number}</td>
                                             <td>{product ? product.name : ''}</td>
+                                            <td>{sale.oil_quantity}</td>
                                             <td>{totalAmount}</td>
+                                            <td>{sale.current_mileage}</td>
+                                            <td>{sale.next_mileage}</td>
                                             <td>{sale.date}</td>
                                             <td>
                                                 <a href="#" onClick={() => handleEditSale(sale)} className="edit" title="Edit" data-toggle="tooltip"><i className="material-icons">&#xE254;</i></a>
@@ -252,12 +287,28 @@ function Home() {
                         <Modal.Body>
                             <form onSubmit={selectedSale ? handleUpdateSale : handleAddSale}>
                                 <div className="form-group">
-                                    <select className="form-control" onChange={(e) => setCustomerId(e.target.value)} value={selectedSale && selectedSale.customerId}>
+                                    <select className="form-control" onChange={(e) => { setCustomerId(e.target.value); fetchUserCars(e.target.value) } } value={selectedSale && selectedSale.customerId}>
                                         <option value="">Select Customer</option>
                                         {customers.map(customer => (
                                             <option key={customer.id} value={customer.id}>{customer.name}</option>
                                         ))}
                                     </select>
+                                </div>
+                                <div className="form-group mt-3">
+                                    {customerId && (
+                                        <select className="form-control" onChange={(e) => setCar(e.target.value)} value={car}>
+                                            <option value="">Select Car</option>
+                                            {userCars.map(car => (
+                                                <option key={car.reg_number} value={car.reg_number}>{car.reg_number}</option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                                <div className="form-group mt-3">
+                                    <input required type="number" className="form-control" placeholder="Enter Current Mileage" value={currentMileage} onChange={(e) => setCurrentMileage(e.target.value)} />
+                                </div>
+                                <div className="form-group mt-3">
+                                    <input required type="number" className="form-control" placeholder="Enter Next Mileage" value={nextMileage} onChange={(e) => setNextMileage(e.target.value)} />
                                 </div>
                                 <div className="form-group mt-3">
                                     <select className="form-control" onChange={(e) => setProductId(e.target.value)} value={selectedSale && selectedSale.productId}>
@@ -268,28 +319,13 @@ function Home() {
                                     </select>
                                 </div>
                                 <div className="form-group mt-3">
-                                    <input required type="number" className="form-control" placeholder="Enter Quantity" value={selectedSale && selectedSale.quantity} onChange={(e) => setQuantity(e.target.value)} />
+                                    <input required type="number" className="form-control" placeholder="Enter Quantity" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
                                 </div>
-                                {customerId &&
-                                    <div className="form-group d-flex mt-3 align-items-center">
-                                        {userCars.length === 0 ?
-                                            <div className="form-control me-2"> No previous cars</div>
-                                            :
-                                            <select className="form-control">
-                                                {userCars.map((car) =>
-                                                    <option key={car.id}>{car.name}</option>
-                                                )}
-                                            </select>
-                                        }
-                                        <div onClick={showCarModal} className="add-button" title="Add New" data-toggle="tooltip">+</div>
-                                    </div>
-                                }
                                 <br />
                                 <Button variant="primary" className="me-3" type="submit">{selectedSale ? 'Update Sale' : 'Add Sale'}</Button>
                                 <Button variant="secondary" onClick={handleClose}>Cancel</Button>
                             </form>
                         </Modal.Body>
-
                     </Modal>
                 </div>
                 <div className="model_box">

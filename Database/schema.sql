@@ -29,11 +29,13 @@ CREATE TABLE IF NOT EXISTS Car (
 CREATE TABLE IF NOT EXISTS Sales (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
-    car_reg_number INT NOT NULL,
+    car_reg_number VARCHAR(20) NOT NULL,
     oil_id INT NOT NULL,
+    oil_quantity INT NOT NULL,
     bill_amount DECIMAL(10, 2) NOT NULL,
     current_mileage INT NOT NULL,
     next_mileage INT NOT NULL,
+    date VARCHAR(20),
     FOREIGN KEY (customer_id) REFERENCES Customer(id),
     FOREIGN KEY (oil_id) REFERENCES Oil(id)
 );
