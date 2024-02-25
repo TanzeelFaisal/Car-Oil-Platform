@@ -24,7 +24,6 @@ app.post('/oil', (req, res) => {
 
 app.post('/customers', (req, res) => {
     const { name, phoneNumber, email, address } = req.body;
-    console.log(name, phoneNumber, email, address)
     pool.query('INSERT INTO Customer (name, number, email, address) VALUES (?, ?, ?, ?)', [name, phoneNumber, email, address], (error, results) => {
         if (error) {
             res.status(500).json({ error: 'Error adding customer' });
@@ -63,17 +62,6 @@ app.delete('/customers/:id', (req, res) => {
             res.status(500).json({ error: 'Error deleting customer' });
         } else {
             res.json({ message: 'Customer deleted successfully' });
-        }
-    });
-});
-
-app.get('/customers/search', (req, res) => {
-    const searchTerm = req.query.q;
-    pool.query('SELECT * FROM Customer WHERE name LIKE ? OR email LIKE ?', [`%${searchTerm}%`, `%${searchTerm}%`], (error, results) => {
-        if (error) {
-            res.status(500).json({ error: 'Error searching customers' });
-        } else {
-            res.json(results);
         }
     });
 });
@@ -122,7 +110,7 @@ app.get('/customer/:phoneNumber', (req, res) => {
 
 app.get('/customer/:customerId/cars', (req, res) => {
     const customerId = req.params.customerId;
-    pool.query('SELECT * FROM Car WHERE customer_id = ?', [customerId], (error, results) => {
+    pool.query('SELECT Car.reg_number FROM Car INNER JOIN Customer ON Car.customer_id = Customer.id WHERE Car.customer_id = ?', [customerId], (error, results) => {
         if (error) {
             res.status(500).json({ error: 'Error fetching customer cars' });
         } else {
@@ -132,10 +120,10 @@ app.get('/customer/:customerId/cars', (req, res) => {
 });
 
 app.post('/customer/:customerId/cars', (req, res) => {
-    const { regNumber, currentMileage, nextMileage, oilId } = req.body;
+    const { regNumber, currentMileage, nextMileage } = req.body;
     const customerId = req.params.customerId;
-    pool.query('INSERT INTO Car (customer_id, reg_number, current_mileage, next_mileage, oil_id) VALUES (?, ?, ?, ?, ?)',
-        [customerId, regNumber, currentMileage, nextMileage, oilId],
+    pool.query('INSERT INTO Car (customer_id, reg_number, current_mileage, next_mileage) VALUES (?, ?, ?, ?)',
+        [customerId, regNumber, currentMileage, nextMileage],
         (error, results) => {
             if (error) {
                 res.status(500).json({ error: 'Error adding customer car' });
@@ -147,7 +135,7 @@ app.post('/customer/:customerId/cars', (req, res) => {
 });
 
 app.post('/sales', (req, res) => {
-    const { customerPhoneNumber, carRegNumber, oilId, billAmount } = req.body;
+    const { customerPhoneNumber, carRegNumber, billAmount } = req.body;
 
     pool.query('SELECT * FROM Customer WHERE number = ?', [customerPhoneNumber], (error, customerResults) => {
         if (error) {
@@ -162,7 +150,7 @@ app.post('/sales', (req, res) => {
 
         const customerId = customerResults[0].id;
 
-        pool.query('SELECT * FROM Car WHERE customer_id = ? AND reg_number = ?', [customerId, carRegNumber], (error, carResults) => {
+        pool.query('SELECT Car.reg_number FROM Car INNER JOIN Customer ON Car.customer_id = Customer.id WHERE Customer.id = ? AND Car.reg_number = ?', [customerId, carRegNumber], (error, carResults) => {
             if (error) {
                 res.status(500).json({ error: 'Error fetching car' });
                 return;
@@ -173,10 +161,10 @@ app.post('/sales', (req, res) => {
                 return;
             }
 
-            const carId = carResults[0].id;
+            const carRegNumber = carResults[0].reg_number;
 
-            pool.query('INSERT INTO Sales (customer_id, car_id, oil_id, bill_amount) VALUES (?, ?, ?, ?)',
-                [customerId, carId, oilId, billAmount],
+            pool.query('INSERT INTO Sales (customer_id, car_reg_number, bill_amount) VALUES (?, ?, ?)',
+                [customerId, carRegNumber, billAmount],
                 (error, results) => {
                     if (error) {
                         res.status(500).json({ error: 'Error adding sale' });
