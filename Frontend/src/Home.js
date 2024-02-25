@@ -190,15 +190,16 @@ function Home() {
         setSearchTerm(event.target.value.toLowerCase());
     };
 
-    const filteredSales = sales.filter((sale) => {
-        const customer = customers.find((cust) => cust.id == sale.customerId);
-        const product = products.find((prod) => prod.id == sale.productId);
-        return (
-            customer.name.toLowerCase().includes(searchTerm) ||
-            product.name.toLowerCase().includes(searchTerm) ||
-            sale.date.toLowerCase().includes(searchTerm)
-        );
-    });
+    const filteredSales = sales.filter(sale =>{
+        const customer = customers.find(cust => cust.id == sale.customer_id);
+        const product = products.find(prod => prod.id == sale.oil_id);
+        console.log(customer, 'innnnn')
+
+        return sale.car_reg_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    }
+    );
 
     useEffect(() => {
     }, [handleAddSale]);
@@ -248,17 +249,16 @@ function Home() {
                             </thead>
                             <tbody>
                                 {filteredSales.map((sale, index) => {
-                                    const customer = customers.find(cust => cust.id == sale.customerId);
-                                    const product = products.find(prod => prod.id == sale.productId);
-                                    const totalAmount = product ? sale.quantity * product.price : 0;
+                                    const customer = customers.find(cust => cust.id == sale.customer_id);
+                                    const product = products.find(prod => prod.id == sale.oil_id);
                                     console.log(customer, product, sale)
                                     return (
                                         <tr key={index}>
                                             <td>{customer ? customer.name : ''}</td>
-                                            <td>{sale.car.reg_number}</td>
+                                            <td>{sale.car_reg_number}</td>
                                             <td>{product ? product.name : ''}</td>
                                             <td>{sale.oil_quantity}</td>
-                                            <td>{totalAmount}</td>
+                                            <td>{sale.bill_amount}</td>
                                             <td>{sale.current_mileage}</td>
                                             <td>{sale.next_mileage}</td>
                                             <td>{sale.date}</td>
