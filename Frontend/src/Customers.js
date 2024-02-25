@@ -1,35 +1,62 @@
-import React from 'react'
-import { useState } from 'react';
-import { Button, Modal} from 'react-bootstrap';
-
+import React, { useState, useEffect } from 'react';
+import { Button, Modal } from 'react-bootstrap';
 
 function Customers() {
-
     const [show, setShow] = useState(false);
-    const [customers, setCustomers] = useState([
-        { id: 1, name: 'John Doe', phoneNumber: '123-456-7890', email: 'john@example.com', address: '123 Street, City, Country' },
-        { id: 2, name: 'Jane Smith', phoneNumber: '987-654-3210', email: 'jane@example.com', address: '456 Road, Town, Country' }
-    ]);
+    const [customers, setCustomers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState(null);
 
     const handleClose = () => {
         setShow(false);
-        setSelectedCustomer(null)
-    }
+        setSelectedCustomer(null);
+    };
+
     const handleShow = () => setShow(true);
 
-    const handleAddCustomer = (event) => {
+    useEffect(() => {
+        fetchCustomers();
+    }, []);
+
+    const fetchCustomers = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/customers', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            setCustomers(data);
+            console.log(data)
+        } catch (error) {
+            console.error('Error fetching customers:', error);
+        }
+    };
+
+    const handleAddCustomer = async (event) => {
         event.preventDefault();
         const form = event.target;
         const newCustomer = {
-            id: customers.length + 1,
             name: form.customerName.value,
             phoneNumber: form.phoneNumber.value,
             email: form.email.value,
             address: form.address.value
         };
-        setCustomers([...customers, newCustomer]);
+
+        try {
+            await fetch('http://localhost:3001/customers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newCustomer)
+            });
+            fetchCustomers();
+        } catch (error) {
+            console.error('Error adding customer:', error);
+        }
+
         handleClose();
     };
 
@@ -38,7 +65,7 @@ function Customers() {
         handleShow();
     };
 
-    const handleUpdateCustomer = (event) => {
+    const handleUpdateCustomer = async (event) => {
         event.preventDefault();
         const form = event.target;
         const updatedCustomer = {
@@ -48,21 +75,48 @@ function Customers() {
             email: form.email.value,
             address: form.address.value
         };
-        const updatedCustomers = customers.map(customer =>
-            customer.id === updatedCustomer.id ? updatedCustomer : customer
-        );
-        setCustomers(updatedCustomers);
-        setSelectedCustomer(null)
+
+        try {
+            await fetch(`http://localhost:3001/customers/${selectedCustomer.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedCustomer)
+            });
+            fetchCustomers();
+        } catch (error) {
+            console.error('Error updating customer:', error);
+        }
+
         handleClose();
     };
 
-    const handleDeleteCustomer = (customerId) => {
-        const updatedCustomers = customers.filter(customer => customer.id !== customerId);
-        setCustomers(updatedCustomers);
+    const handleDeleteCustomer = async (customerId) => {
+        try {
+            await fetch(`http://localhost:3001/customers/${customerId}`, {
+                method: 'DELETE'
+            });
+            fetchCustomers();
+        } catch (error) {
+            console.error('Error deleting customer:', error);
+        }
     };
 
-    const handleSearch = (event) => {
+    const handleSearch = async (event) => {
         setSearchTerm(event.target.value);
+        try {
+            const response = await fetch(`http://localhost:3001/customers/search?term=${event.target.value}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            setCustomers(data);
+        } catch (error) {
+            console.error('Error searching customers:', error);
+        }
     };
 
     const filteredCustomers = customers.filter(customer =>
@@ -70,6 +124,7 @@ function Customers() {
         customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.phoneNumber.includes(searchTerm)
     );
+
     return ( 
         <div className='container'>
             <div className="crud shadow-lg p-3 mb-5 mt-5 bg-body rounded">

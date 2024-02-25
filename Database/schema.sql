@@ -1,21 +1,21 @@
-USE oil_sales_db;
+drop database oil_sales_db;
+create database oil_sales_db;
+use oil_sales_db;
 
--- Oil table
 CREATE TABLE Oil (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     type VARCHAR(255) NOT NULL
 );
 
--- Customer table
 CREATE TABLE Customer (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     number VARCHAR(20) NOT NULL,
-    UNIQUE (number)
+    email VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL
 );
 
--- Car table
 CREATE TABLE Car (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
@@ -27,7 +27,6 @@ CREATE TABLE Car (
     FOREIGN KEY (oil_id) REFERENCES Oil(id)
 );
 
--- Sales table
 CREATE TABLE Sales (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,

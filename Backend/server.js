@@ -7,9 +7,7 @@ const app = express();
 const port = 3001;
 
 app.use(express.json());
-app.use(cors({
-    origin: 'http://localhost:3001'
-}))
+app.use(cors())
 
 const pool = mysql.createPool(dbConfig);
 
@@ -24,10 +22,56 @@ app.post('/oil', (req, res) => {
     });
 });
 
+app.post('/customers', (req, res) => {
+    const { name, phoneNumber, email, address } = req.body;
+    console.log(name, phoneNumber, email, address)
+    pool.query('INSERT INTO Customer (name, number, email, address) VALUES (?, ?, ?, ?)', [name, phoneNumber, email, address], (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error adding customer' });
+        } else {
+            res.json({ message: 'Customer added successfully' });
+        }
+    });
+});
+
 app.get('/customers', (req, res) => {
     pool.query('SELECT * FROM Customer', (error, results) => {
         if (error) {
             res.status(500).json({ error: 'Error fetching customers' });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+app.put('/customers/:id', (req, res) => {
+    const customerId = req.params.id;
+    const { name, phoneNumber, email, address } = req.body;
+    pool.query('UPDATE Customer SET name=?, number=?, email=?, address=? WHERE id=?', [name, phoneNumber, email, address, customerId], (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error updating customer' });
+        } else {
+            res.json({ message: 'Customer updated successfully' });
+        }
+    });
+});
+
+app.delete('/customers/:id', (req, res) => {
+    const customerId = req.params.id;
+    pool.query('DELETE FROM Customer WHERE id=?', [customerId], (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error deleting customer' });
+        } else {
+            res.json({ message: 'Customer deleted successfully' });
+        }
+    });
+});
+
+app.get('/customers/search', (req, res) => {
+    const searchTerm = req.query.q;
+    pool.query('SELECT * FROM Customer WHERE name LIKE ? OR email LIKE ?', [`%${searchTerm}%`, `%${searchTerm}%`], (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error searching customers' });
         } else {
             res.json(results);
         }
@@ -73,17 +117,6 @@ app.get('/customer/:phoneNumber', (req, res) => {
                 });
             });
         });
-    });
-});
-
-app.post('/customers', (req, res) => {
-    const { name, number } = req.body;
-    pool.query('INSERT INTO Customer (name, number) VALUES (?, ?)', [name, number], (error, results) => {
-        if (error) {
-            res.status(500).json({ error: 'Error adding customer' });
-        } else {
-            res.json({ message: 'Customer added successfully' });
-        }
     });
 });
 
