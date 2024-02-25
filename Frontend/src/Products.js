@@ -1,14 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
 function Products() {
     const [show, setShow] = useState(false);
-    const [products, setProducts] = useState([
-        { id: 1, name: 'Product 1', price: 10, description: 'Description 1' },
-        { id: 2, name: 'Product 2', price: 20, description: 'Description 2' }
-    ]);
+    const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedProduct, setSelectedProduct] = useState(null);
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/oils');
+            const data = await response.json();
+            setProducts(data);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        }
+    };
 
     const handleClose = () => {
         setShow(false);
@@ -17,16 +28,29 @@ function Products() {
 
     const handleShow = () => setShow(true);
 
-    const handleAddProduct = (event) => {
+    const handleAddProduct = async (event) => {
         event.preventDefault();
         const form = event.target;
         const newProduct = {
-            id: products.length + 1,
             name: form.productName.value,
-            price: form.price.value,
-            description: form.description.value
+            type: form.type.value,
+            stock: form.stock.value,
+            price: form.price.value // Include price
         };
-        setProducts([...products, newProduct]);
+
+        try {
+            await fetch('http://localhost:3001/oils', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newProduct)
+            });
+            fetchProducts();
+        } catch (error) {
+            console.error('Error adding product:', error);
+        }
+
         handleClose();
     };
 
@@ -35,37 +59,56 @@ function Products() {
         handleShow();
     };
 
-    const handleUpdateProduct = (event) => {
+    const handleUpdateProduct = async (event) => {
         event.preventDefault();
         const form = event.target;
         const updatedProduct = {
             ...selectedProduct,
             name: form.productName.value,
-            price: form.price.value,
-            description: form.description.value
+            type: form.type.value,
+            stock: form.stock.value,
+            price: form.price.value // Include price
         };
-        const updatedProducts = products.map(product =>
-            product.id === updatedProduct.id ? updatedProduct : product
-        );
-        setProducts(updatedProducts);
-        setSelectedProduct(null);
+
+        try {
+            await fetch(`http://localhost:3001/oils/${selectedProduct.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedProduct)
+            });
+            fetchProducts();
+        } catch (error) {
+            console.error('Error updating product:', error);
+        }
+
         handleClose();
     };
 
-    const handleDeleteProduct = (productId) => {
-        const updatedProducts = products.filter(product => product.id !== productId);
-        setProducts(updatedProducts);
+    const handleDeleteProduct = async (productId) => {
+        try {
+            await fetch(`http://localhost:3001/oils/${productId}`, {
+                method: 'DELETE'
+            });
+            fetchProducts();
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
     };
 
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
     };
 
-    const filteredProducts = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.price == searchTerm
-    );
+    const filteredProducts = Array.isArray(products)
+        ? products.filter(product =>
+            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            String(product.stock) === searchTerm ||
+            String(product.price) === searchTerm // Include price
+        )
+        : [];
 
     return (
         <div className='container'>
@@ -96,8 +139,9 @@ function Products() {
                                 <tr>
                                     <th>#</th>
                                     <th>Name</th>
-                                    <th>Price</th>
-                                    <th>Description</th>
+                                    <th>Type</th>
+                                    <th>Stock</th>
+                                    <th>Price</th> {/* Include Price */}
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -106,8 +150,9 @@ function Products() {
                                     <tr key={product.id}>
                                         <td>{product.id}</td>
                                         <td>{product.name}</td>
-                                        <td>Rs. {product.price}</td>
-                                        <td>{product.description}</td>
+                                        <td>{product.type}</td>
+                                        <td>{product.stock}</td>
+                                        <td>{product.price}</td> {/* Include Price */}
                                         <td>
                                             <a href="#" onClick={() => handleEditProduct(product)} className="edit" title="Edit" data-toggle="tooltip"><i className="material-icons">&#xE254;</i></a>
                                             <a href="#" onClick={() => handleDeleteProduct(product.id)} className="delete" title="Delete" data-toggle="tooltip" style={{ color: "red" }}><i className="material-icons">&#xE872;</i></a>
@@ -135,10 +180,13 @@ function Products() {
                                     <input type="text" className="form-control" id="productName" placeholder="Enter Name" defaultValue={selectedProduct ? selectedProduct.name : ''} />
                                 </div>
                                 <div className="form-group mt-3">
-                                    <input type="text" className="form-control" id="price" placeholder="Enter Price" defaultValue={selectedProduct ? selectedProduct.price : ''} />
+                                    <input type="text" className="form-control" id="type" placeholder="Enter Type" defaultValue={selectedProduct ? selectedProduct.type : ''} />
                                 </div>
                                 <div className="form-group mt-3">
-                                    <input type="text" className="form-control" id="description" placeholder="Enter Description" defaultValue={selectedProduct ? selectedProduct.description : ''} />
+                                    <input type="text" className="form-control" id="stock" placeholder="Enter Stock" defaultValue={selectedProduct ? selectedProduct.stock : ''} />
+                                </div>
+                                <div className="form-group mt-3"> {/* Include Price field */}
+                                    <input type="text" className="form-control" id="price" placeholder="Enter Price" defaultValue={selectedProduct ? selectedProduct.price : ''} />
                                 </div>
                                 <button type="submit" className="btn btn-success mt-4">{selectedProduct ? 'Update Product' : 'Add Product'}</button>
                             </form>

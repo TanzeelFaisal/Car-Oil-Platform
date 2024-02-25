@@ -183,7 +183,7 @@ function Customers() {
                                     <input type="text" className="form-control" id="customerName" placeholder="Enter Name" defaultValue={selectedCustomer ? selectedCustomer.name : ''} />
                                 </div>
                                 <div className="form-group mt-3">
-                                    <input type="tel" className="form-control" id="phoneNumber" placeholder="Enter Phone Number" defaultValue={selectedCustomer ? selectedCustomer.phoneNumber : ''} />
+                                    <input type="tel" className="form-control" id="phoneNumber" placeholder="Enter Phone Number" defaultValue={selectedCustomer ? selectedCustomer.number : ''} />
                                 </div>
                                 <div className="form-group mt-3">
                                     <input type="email" className="form-control" id="email" placeholder="Enter Email" defaultValue={selectedCustomer ? selectedCustomer.email : ''} />

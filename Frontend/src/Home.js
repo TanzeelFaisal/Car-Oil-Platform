@@ -19,20 +19,16 @@ function Home() {
     const [carName, setCarName] = useState('');
     const [registrationNo, setRegistrationNo] = useState('');
 
-    // Function to handle adding a new car
     const handleAddCar = (e) => {
         e.preventDefault();
 
-        // Create a new car object
         const newCar = {
             name: carName,
             registrationNo: registrationNo
         };
 
-        // Add the new car to the userCars array
         setUserCars([...userCars, newCar]);
 
-        // Close the car modal
         setCarModal(false);
     };
 

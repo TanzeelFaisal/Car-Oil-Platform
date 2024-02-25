@@ -11,17 +11,6 @@ app.use(cors())
 
 const pool = mysql.createPool(dbConfig);
 
-app.post('/oil', (req, res) => {
-    const { name, type } = req.body;
-    pool.query('INSERT INTO Oil (name, type) VALUES (?, ?)', [name, type], (error, results) => {
-        if (error) {
-            res.status(500).json({ error: 'Error adding oil' });
-        } else {
-            res.json({ message: 'Oil added successfully' });
-        }
-    });
-});
-
 app.post('/customers', (req, res) => {
     const { name, phoneNumber, email, address } = req.body;
     pool.query('INSERT INTO Customer (name, number, email, address) VALUES (?, ?, ?, ?)', [name, phoneNumber, email, address], (error, results) => {
@@ -174,6 +163,50 @@ app.post('/sales', (req, res) => {
                 }
             );
         });
+    });
+});
+
+app.get('/oils', (req, res) => {
+    pool.query('SELECT * FROM Oil', (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error fetching customers' });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+app.post('/oils', (req, res) => {
+    const { name, price, type, stock } = req.body;
+    pool.query('INSERT INTO Oil (name, price, type, stock) VALUES (?, ?, ?, ?)', [name, price, type, stock], (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error adding product' });
+        } else {
+            res.json({ message: 'Product added successfully' });
+        }
+    });
+});
+
+app.put('/oils/:id', (req, res) => {
+    const productId = req.params.id;
+    const { name, price, type, stock } = req.body;
+    pool.query('UPDATE Oil SET name=?, price=?, type=?, stock=? WHERE id=?', [name, price, type, stock, productId], (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error updating product' });
+        } else {
+            res.json({ message: 'Product updated successfully' });
+        }
+    });
+});
+
+app.delete('/oils/:id', (req, res) => {
+    const productId = req.params.id;
+    pool.query('DELETE FROM Oil WHERE id = ?', [productId], (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error deleting product' });
+        } else {
+            res.json({ message: 'Product deleted successfully' });
+        }
     });
 });
 
