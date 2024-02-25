@@ -24,7 +24,6 @@ app.post('/oil', (req, res) => {
 
 app.post('/customers', (req, res) => {
     const { name, phoneNumber, email, address } = req.body;
-    console.log(name, phoneNumber, email, address)
     pool.query('INSERT INTO Customer (name, number, email, address) VALUES (?, ?, ?, ?)', [name, phoneNumber, email, address], (error, results) => {
         if (error) {
             res.status(500).json({ error: 'Error adding customer' });
