@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS Customer (
 CREATE TABLE IF NOT EXISTS Car (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
+    car_name VARCHAR(20) NOT NULL,
     reg_number VARCHAR(20) NOT NULL UNIQUE,
     FOREIGN KEY (customer_id) REFERENCES Customer(id)
 );
