@@ -5,20 +5,50 @@ import { Button, Modal } from 'react-bootstrap';
 function Home() {
     const [show, setShow] = useState(false);
     const [sales, setSales] = useState([]);
-    const [customers, setCustomers] = useState([
-        { id: 1, name: 'John Doe', phoneNumber: '123-456-7890' },
-        { id: 2, name: 'Jane Smith', phoneNumber: '987-654-3210' }
-    ]);
-    const [products, setProducts] = useState([
-        { id: 1, name: 'Product 1', price: 10 },
-        { id: 2, name: 'Product 2', price: 20 }
-    ]);
+    const [customers, setCustomers] = useState([]);
+    const [products, setProducts] = useState([]);
     const [customerId, setCustomerId] = useState('');
     const [productId, setProductId] = useState('');
     const [quantity, setQuantity] = useState('');
     const [car, setCar] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSale, setSelectedSale] = useState(null);
+
+    useEffect(() => {
+        fetchSales();
+        fetchCustomers();
+        fetchProducts();
+    }, []);
+
+    const fetchSales = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/sales');
+            const data = await response.json();
+            setSales(data);
+        } catch (error) {
+            console.error('Error fetching sales:', error);
+        }
+    };
+
+    const fetchCustomers = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/customers');
+            const data = await response.json();
+            setCustomers(data);
+        } catch (error) {
+            console.error('Error fetching customers:', error);
+        }
+    };
+
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/products');
+            const data = await response.json();
+            setProducts(data);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        }
+    };
 
     const handleClose = () => {
         setShow(false);
@@ -33,7 +63,7 @@ function Home() {
         setShow(true);
     }
 
-    const handleAddSale = (e) => {
+    const handleAddSale = async (e) => {
         e.preventDefault()
         const newSale = {
             customerId,
@@ -42,8 +72,23 @@ function Home() {
             car,
             date: new Date().toLocaleDateString()
         };
-        setSales([...sales, newSale]);
-        handleClose();
+        try {
+            const response = await fetch('http://localhost:3001/sales', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newSale)
+            });
+            if (response.ok) {
+                fetchSales();
+                handleClose();
+            } else {
+                console.error('Error adding sale:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error adding sale:', error);
+        }
     };
 
     const handleEditSale = (sale) => {
@@ -51,22 +96,46 @@ function Home() {
         handleShow();
     };
 
-    const handleUpdateSale = (e) => {
+    const handleUpdateSale = async (e) => {
         e.preventDefault()
-        const updatedSales = sales.map(s => (s === selectedSale ? {
-            ...s,
+        const updatedSale = {
             customerId,
             productId,
             quantity: parseInt(quantity),
             car
-        } : s));
-        setSales(updatedSales);
-        handleClose();
+        };
+        try {
+            const response = await fetch(`http://localhost:3001/sales/${selectedSale.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedSale)
+            });
+            if (response.ok) {
+                fetchSales();
+                handleClose();
+            } else {
+                console.error('Error updating sale:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error updating sale:', error);
+        }
     };
 
-    const handleDeleteSale = (sale) => {
-        const updatedSales = sales.filter(s => s !== sale);
-        setSales(updatedSales);
+    const handleDeleteSale = async (sale) => {
+        try {
+            const response = await fetch(`http://localhost:3001/sales/${sale.id}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                fetchSales();
+            } else {
+                console.error('Error deleting sale:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error deleting sale:', error);
+        }
     };
 
     const handleSearch = (event) => {
@@ -83,10 +152,6 @@ function Home() {
             sale.date.toLowerCase().includes(searchTerm)
         );
     });
-
-    useEffect(() => {
-        console.log(sales)
-    }, [handleAddSale]);
 
     return (
         <div className='container'>
