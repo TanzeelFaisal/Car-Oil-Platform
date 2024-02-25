@@ -6,7 +6,7 @@ const MyNavbar = () => {
     return (
         <Navbar bg="light" collapseOnSelect expand="lg" className="bg-body-tertiary navbar">
             <Container>
-                <Navbar.Brand href="#home">Car Oil Sales</Navbar.Brand>
+                <Navbar.Brand ><Link to='/'>Car Oil Sales</Link></Navbar.Brand>
                 <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                 <Navbar.Collapse id="responsive-navbar-nav">
                     <Nav className="me-auto">
