@@ -14,6 +14,127 @@
   }
 }
 
+
+.fa-download {
+  cursor: pointer;
+  transform: translate(245px, 40px);
+}
+
+#receipt {
+  box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5);
+  margin: 0 auto;
+  width: 148mm;
+  background: #FFF;
+}
+
+
+#receipt h1 {
+  font-size: 3em;
+  color: #222;
+}
+
+#receipt h2 {
+  font-size: 24px;
+}
+
+#table h2 {
+  font-size: 16px;
+}
+
+
+
+#receipt h3 {
+  font-size: 2.4em;
+  font-weight: 300;
+  line-height: 2em;
+}
+
+#receipt p {
+  color: #666;
+  line-height: 1.2em;
+}
+
+#top,
+#mid,
+#bot {
+  /* Targets all id with 'col-' */
+  border-bottom: 1px solid #EEE;
+}
+
+#mid {
+  min-height: 100px;
+  
+}
+
+#mid p {
+  background: #EEE;
+  margin: 1;
+  font-size: 16px;
+  padding-bottom: 5px;
+  margin-bottom: 0;
+  text-align: justify;
+}
+
+#mid span {
+  float: right;
+}
+
+#bot {
+  min-height: 100px;
+}
+
+#top .logo {
+  height: 120px;
+  width: 120px;
+}
+
+#receipt .info {
+  display: block;
+  margin-left: 0;
+}
+
+#receipt .title {
+  float: right;
+}
+
+#table {
+  font-size: 16px;
+}
+
+#table > div {
+  display: flex;
+  font-size: 16px;
+  justify-content: space-between;
+  border-bottom: 1px solid #EEE;
+}
+
+#table tr td:nth-child(2) {
+  float: right;
+}
+
+#receipt .title p {
+  text-align: right;
+}
+
+#receipt table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#receipt .tabletitle {
+  font-size: 16px;
+  background: #EEE;
+}
+
+#legalcopy {
+  margin-top: 5mm;
+}
+
+.end {
+  font-size: 16px;
+  text-align: center;
+}
+
 .add-button {
   background-color: greenyellow;
   border-radius: 10px;
