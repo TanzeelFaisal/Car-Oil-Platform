@@ -14,6 +14,16 @@
   }
 }
 
+.add-button {
+  background-color: greenyellow;
+  border-radius: 10px;
+  height: 30px;
+  width: 30px;
+  border: none;
+  text-align: center;
+  cursor: pointer;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
