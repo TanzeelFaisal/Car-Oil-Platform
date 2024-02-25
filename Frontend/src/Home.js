@@ -19,6 +19,28 @@ function Home() {
     const [car, setCar] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSale, setSelectedSale] = useState(null);
+    const [carModal, setCarModal] = useState(false);
+    const [userCars, setUserCars] = useState([]);
+
+    const [carName, setCarName] = useState('');
+    const [registrationNo, setRegistrationNo] = useState('');
+
+    // Function to handle adding a new car
+    const handleAddCar = (e) => {
+        e.preventDefault();
+
+        // Create a new car object
+        const newCar = {
+            name: carName,
+            registrationNo: registrationNo
+        };
+
+        // Add the new car to the userCars array
+        setUserCars([...userCars, newCar]);
+
+        // Close the car modal
+        setCarModal(false);
+    };
 
     const handleClose = () => {
         setShow(false);
@@ -88,6 +110,11 @@ function Home() {
         console.log(sales)
     }, [handleAddSale]);
 
+    const showCarModal = (e) => {
+        setShow(false)
+        setCarModal(true)
+    };
+
     return (
         <div className='container'>
             <div className="crud shadow-lg p-3 mb-5 mt-5 bg-body rounded">
@@ -137,8 +164,8 @@ function Home() {
                                             <td>{totalAmount}</td>
                                             <td>{sale.date}</td>
                                             <td>
-                                            <a href="#" onClick={() => handleEditSale(sale)} className="edit" title="Edit" data-toggle="tooltip"><i className="material-icons">&#xE254;</i></a>
-                                            <a href="#" onClick={() => handleDeleteSale(sale)} className="delete" title="Delete" data-toggle="tooltip" style={{ color: "red" }}><i className="material-icons">&#xE872;</i></a>
+                                                <a href="#" onClick={() => handleEditSale(sale)} className="edit" title="Edit" data-toggle="tooltip"><i className="material-icons">&#xE254;</i></a>
+                                                <a href="#" onClick={() => handleDeleteSale(sale)} className="delete" title="Delete" data-toggle="tooltip" style={{ color: "red" }}><i className="material-icons">&#xE872;</i></a>
                                             </td>
                                         </tr>
                                     );
@@ -179,14 +206,71 @@ function Home() {
                                 <div className="form-group mt-3">
                                     <input required type="number" className="form-control" placeholder="Enter Quantity" value={selectedSale && selectedSale.quantity} onChange={(e) => setQuantity(e.target.value)} />
                                 </div>
-                                <div className="form-group my-3">
-                                    <input required type="text" className="form-control" placeholder="Enter Car Name" value={selectedSale && selectedSale.car} onChange={(e) => setCar(e.target.value)} />
-                                </div>
+                                {customerId &&
+                                    <div className="form-group d-flex mt-3 align-items-center">
+                                        {userCars.length === 0 ?
+                                            <div className="form-control me-2"> No previous cars</div>
+                                            :
+                                            <select className="form-control">
+                                                {userCars.map((car) =>
+                                                    <option key={car.id}>{car.name}</option>
+                                                )}
+                                            </select>
+                                        }
+                                        <div onClick={showCarModal} className="add-button" title="Add New" data-toggle="tooltip">+</div>
+                                    </div>
+                                }
+                                <br />
                                 <Button variant="primary" className="me-3" type="submit">{selectedSale ? 'Update Sale' : 'Add Sale'}</Button>
                                 <Button variant="secondary" onClick={handleClose}>Cancel</Button>
                             </form>
                         </Modal.Body>
 
+                    </Modal>
+                </div>
+                <div className="model_box">
+                    <Modal
+                        show={carModal}
+                        onHide={() => {
+                            setCarModal(false); // Close the car modal
+                            setShow(true); // Open the sale modal
+                        }}
+                        backdrop="static"
+                        keyboard={false}
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>Add New Car</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <form onSubmit={handleAddCar}>
+                                <div className="form-group">
+                                    <input
+                                        required
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Car Name"
+                                        value={carName}
+                                        onChange={(e) => setCarName(e.target.value)}
+                                    />
+                                </div>
+                                <div className="form-group my-3">
+                                    <input
+                                        required
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Registration Number"
+                                        value={registrationNo}
+                                        onChange={(e) => setRegistrationNo(e.target.value)}
+                                    />
+                                </div>
+                                <Button variant="primary" className="me-3" type="submit">
+                                    Add Car
+                                </Button>
+                                <Button variant="secondary" onClick={() => setCarModal(false)}>
+                                    Cancel
+                                </Button>
+                            </form>
+                        </Modal.Body>
                     </Modal>
                 </div>
             </div>

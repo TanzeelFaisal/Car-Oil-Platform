@@ -105,24 +105,12 @@ function Customers() {
 
     const handleSearch = async (event) => {
         setSearchTerm(event.target.value);
-        try {
-            const response = await fetch(`http://localhost:3001/customers/search?term=${event.target.value}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            setCustomers(data);
-        } catch (error) {
-            console.error('Error searching customers:', error);
-        }
     };
 
     const filteredCustomers = customers.filter(customer =>
         customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.phoneNumber.includes(searchTerm)
+        customer.number.includes(searchTerm)
     );
 
     return ( 
@@ -165,7 +153,7 @@ function Customers() {
                                     <tr key={customer.id}>
                                         <td>{customer.id}</td>
                                         <td>{customer.name}</td>
-                                        <td>{customer.phoneNumber}</td>
+                                        <td>{customer.number}</td>
                                         <td>{customer.email}</td>
                                         <td>{customer.address}</td>
                                         <td>
