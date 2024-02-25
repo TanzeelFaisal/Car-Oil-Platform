@@ -14,7 +14,12 @@ const MyNavbar = () => {
                     </Nav>
                     <Nav>
 
-                        <Nav.Link><Link to='customers'>Customers</Link></Nav.Link>
+                        <Nav.Link>
+                            <Link to='cars'>Cars</Link>
+                        </Nav.Link>
+                        <Nav.Link>
+                            <Link to='customers'>Customers</Link>
+                        </Nav.Link>
                         <Nav.Link>
                             <Link to='products'>Products</Link>
                         </Nav.Link>

@@ -210,6 +210,62 @@ app.delete('/oils/:id', (req, res) => {
     });
 });
 
+app.get('/cars', (req, res) => {
+    pool.query(
+        'SELECT Car.id, Car.car_name, Car.reg_number, Customer.name AS customer_name FROM Car INNER JOIN Customer ON Car.customer_id = Customer.id',
+        (error, results) => {
+            if (error) {
+                res.status(500).json({ error: 'Error fetching cars' });
+            } else {
+                res.json(results);
+            }
+        }
+    );
+});
+
+app.post('/cars', (req, res) => {
+    const { customer_id, car_name, reg_number } = req.body;
+    pool.query(
+        'INSERT INTO Car (customer_id, car_name, reg_number) VALUES (?, ?, ?)',
+        [customer_id, car_name, reg_number],
+        (error, results) => {
+            if (error) {
+                res.status(500).json({ error: 'Error adding car' });
+            } else {
+                res.json({ message: 'Car added successfully' });
+            }
+        }
+    );
+});
+
+app.put('/cars/:id', (req, res) => {
+    const { id } = req.params;
+    const { car_name, reg_number } = req.body;
+    pool.query(
+        'UPDATE Car SET car_name=?, reg_number=? WHERE id=?',
+        [car_name, reg_number, id],
+        (error, results) => {
+            if (error) {
+                res.status(500).json({ error: 'Error updating car' });
+            } else {
+                res.json({ message: 'Car updated successfully' });
+            }
+        }
+    );
+});
+
+app.delete('/cars/:id', (req, res) => {
+    const { id } = req.params;
+    pool.query('DELETE FROM Car WHERE id=?', [id], (error, results) => {
+        if (error) {
+            res.status(500).json({ error: 'Error deleting car' });
+        } else {
+            res.json({ message: 'Car deleted successfully' });
+        }
+    });
+});
+
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
