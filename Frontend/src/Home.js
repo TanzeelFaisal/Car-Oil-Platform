@@ -2,7 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import React, { useEffect, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import Receipt from "./components/Receipt";
-import axios from 'axios';
+// import axios from 'axios';
 
 function Home() {
     const [show, setShow] = useState(false);
@@ -217,33 +217,39 @@ function Home() {
     }
     );
 
-    const testAPI = async () => {
-        const apiToken = "ce14f29f441e55b1614c902df9b71a710e21188981"; // Your api_token key.
-        const apiSecret = "KjrFrSICrltXwjQXIFmHR"; // Your api_token key.
-        const to = "923044747496"; // Multiple mobile numbers separated by comma.
-        const from = "Oil Sales"; // Sender ID, Max 6 characters long.
-        const message = "Checking if this is working"; // Your message to send.
+    // const testAPI = async () => {
+    //     // const apiToken = "ce14f29f441e55b1614c902df9b71a710e21188981"; // Your api_token key.
+    //     // const apiSecret = "KjrFrSICrltXwjQXIFmHR"; // Your api_token key.
+    //     // const to = "923044747496"; // Multiple mobile numbers separated by comma.
+    //     // const from = "Oil Sales"; // Sender ID, Max 6 characters long.
+    //     // const message = "Checking if this is working"; // Your message to send.
     
-        const url = "https://lifetimesms.com/json"; // API URL
+    //     // const url = "https://lifetimesms.com/json"; // API URL
     
-        // Prepare your post parameters
-        const params = {
-            api_token: apiToken,
-            api_secret: apiSecret,
-            to: to,
-            from: from,
-            message: message
-        };
+    //     // // Prepare your post parameters
+    //     // const params = {
+    //     //     api_token: apiToken,
+    //     //     api_secret: apiSecret,
+    //     //     to: to,
+    //     //     from: from,
+    //     //     message: message
+    //     // };
     
-        try {
-            const response = await axios.get(url, { params });
-            console.log(response.data); // Log the response data
-            // Handle success, if needed
-        } catch (error) {
-            console.error('Error:', error); // Log any errors
-            // Handle errors, if needed
-        }
-    };
+    //     // try {
+    //     //     const response = await axios.get(url, { params });
+    //     //     console.log(response.data); // Log the response data
+    //     //     // Handle success, if needed
+    //     // } catch (error) {
+    //     //     console.error('Error:', error); // Log any errors
+    //     //     // Handle errors, if needed
+    //     // }
+
+    //     const params = {
+    //         APIKey: 'e6a6053a2b97513b9b734739ac2e87f9',
+    //         receivenum: '923044747496',
+    //         sendnum: 'Default'
+    //     }
+    // };
 
     const handleShowReceipt = (sale) => {
         const customer = customers.find(cust => cust.id == sale.customer_id);
@@ -290,7 +296,6 @@ function Home() {
                         </Button>
                     </div>
                 </div>
-                {/* <button onClick={testAPI}>test</button> */}
                 <div className="row">
                     <div className="table-responsive " >
                         <table className="table table-striped table-hover table-bordered">
