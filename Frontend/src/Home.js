@@ -90,11 +90,6 @@ function Home() {
     const handleAddSale = async (e) => {
         e.preventDefault();
         const selectedProduct = products.find(product => product.id === parseInt(productId));
-        
-        if (selectedProduct && parseInt(quantity) > selectedProduct.stock) {
-            alert('Stock is lesser than the quantity entered!');
-            return;
-        }
     
         const totalAmount = selectedProduct.price * parseInt(quantity);
 
@@ -120,8 +115,9 @@ function Home() {
             if (response.ok) {
                 fetchSales();
                 handleClose();
-                console.log(selectedCustomer)
                 sendText(selectedCustomer.number, `Your purchase of ${totalAmount} was confirmed for your car with the registration number: ${car}.`);
+            } else if (response.status == 400) {
+                alert('Stock is lesser than the quantity entered!');
             } else {
                 console.error('Error adding sale:', response.statusText);
             }

@@ -109,17 +109,39 @@ app.get('/sales', (req, res) => {
 });
 
 
-app.post('/sales', (req, res) => {
+app.post('/sales', async (req, res) => {
     const newSale = req.body;
-    pool.query('INSERT INTO Sales SET ?', newSale, (err, result) => {
+
+    pool.query('SELECT stock FROM Oil WHERE id = ?', [newSale.oil_id], (err, results) => {
         if (err) {
-            console.error('Error adding sale:', err);
+            console.error('Error fetching stock level:', err);
             res.status(500).json({ error: 'Internal server error' });
         } else {
-            res.status(201).json({ message: 'Sale added successfully', id: result.insertId });
+            const stock = results[0].stock;
+            if (stock < newSale.oil_quantity) {
+                res.status(400).json({ error: 'Not enough stock available' });
+            } else {
+                pool.query('INSERT INTO Sales SET ?', newSale, (err, result) => {
+                    if (err) {
+                        console.error('Error adding sale:', err);
+                        res.status(500).json({ error: 'Internal server error' });
+                    } else {
+                        const updateQuery = 'UPDATE Oil SET stock = stock - ? WHERE id = ?';
+                        pool.query(updateQuery, [newSale.oil_quantity, newSale.oil_id], (err, result) => {
+                            if (err) {
+                                console.error('Error updating stock level:', err);
+                                res.status(500).json({ error: 'Internal server error' });
+                            } else {
+                                res.status(201).json({ message: 'Sale added successfully', id: result.insertId });
+                            }
+                        });
+                    }
+                });
+            }
         }
     });
 });
+
 
 app.put('/sales/:id', (req, res) => {
     const saleId = req.params.id;
