@@ -97,6 +97,7 @@ function Home() {
         }
     
         const totalAmount = selectedProduct.price * parseInt(quantity);
+
         const newSale = {
             customer_id: customerId,
             oil_id: productId,
@@ -107,7 +108,7 @@ function Home() {
             bill_amount: totalAmount,
             date: new Date().toLocaleDateString()
         };
-    
+        const selectedCustomer = customers.find(customer => customer.id === parseInt(customerId));
         try {
             const response = await fetch('http://localhost:3001/sales', {
                 method: 'POST',
@@ -119,12 +120,40 @@ function Home() {
             if (response.ok) {
                 fetchSales();
                 handleClose();
+                console.log(selectedCustomer)
+                sendText(selectedCustomer.number, `Your purchase of ${totalAmount} was confirmed for your car with the registration number: ${car}.`);
             } else {
                 console.error('Error adding sale:', response.statusText);
             }
         } catch (error) {
             console.error('Error adding sale:', error);
         }
+    };
+
+    const sendText = async (recipient, textmessage) => {    
+        const body = {
+            recipient: recipient,
+            textmessage: textmessage
+        };
+    
+        const response = await fetch('http://localhost:3001/send-text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response from server:', data);
+            })
+            .catch(error => {
+                console.error('Error sending text:', error);
+            });
     };
 
     const handleEditSale = (sale) => {

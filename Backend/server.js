@@ -1,7 +1,12 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const twilio = require('twilio');
 const { dbConfig } = require('./config');
+
+const accountSID = 'AC0db2f0642cc961d1ef786172bb403afd'
+const authToken = '0ae388d13bb24c6c486a6d6c085c17ea'
+const client = new twilio(accountSID, authToken)
 
 const app = express();
 const port = 3001;
@@ -10,6 +15,16 @@ app.use(express.json());
 app.use(cors())
 
 const pool = mysql.createPool(dbConfig);
+
+app.post('/send-text', (req, res) => {
+    const { recipient, textmessage } = req.body
+
+    client.messages.create({
+        body: textmessage,
+        to: '+92' + recipient.slice(1),
+        from: '+16203495809'
+    }).then((message) => console.log(message.body));
+});
 
 app.post('/customers', (req, res) => {
     const { name, phoneNumber, email, address } = req.body;
@@ -57,7 +72,6 @@ app.delete('/customers/:id', (req, res) => {
 
 app.get('/customers/:customerId/cars', (req, res) => {
     const customerId = req.params.customerId;
-    console.log('hi')
     pool.query('SELECT * FROM Car INNER JOIN Customer ON Car.customer_id = Customer.id WHERE Car.customer_id = ?', [customerId], (error, results) => {
         if (error) {
             console.log(error)
