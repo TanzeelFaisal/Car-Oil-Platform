@@ -1,19 +1,7 @@
 import html2pdf from 'html2pdf.js';
+import React from 'react'
 
-const Receipt = () => {
-    const info = {
-        name: 'Mohammad Muneeb Arshad',
-        phone: '0332982389',
-        email: 'muneebarshad2002@gmail.com',
-        date: '20/06/2024',
-        amount: '2000',
-        quantity: 100,
-        carname: 'Wagon R',
-        regNo: 'LEA-1604',
-        current: 2000,
-        next: 3000,
-        oil: 'Euro'
-    };
+const Receipt = ({info}) => {
 
     const handleDownload = async () => {
         const pdfElement = document.getElementById('receipt');

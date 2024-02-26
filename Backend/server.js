@@ -84,7 +84,7 @@ app.post('/customer/:customerId/cars', (req, res) => {
 });
 
 app.get('/sales', (req, res) => {
-    pool.query('SELECT * FROM Sales', (err, result) => {
+    pool.query('SELECT Sales.*, Car.car_name FROM Sales INNER JOIN Car ON Car.reg_number = Sales.car_reg_number;', (err, result) => {
         if (err) {
             console.error('Error fetching sales:', err);
             res.status(500).json({ error: 'Internal server error' });

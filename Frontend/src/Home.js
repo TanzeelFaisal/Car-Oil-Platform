@@ -1,6 +1,8 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import React, { useEffect, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import Receipt from "./components/Receipt";
+import axios from 'axios';
 
 function Home() {
     const [show, setShow] = useState(false);
@@ -15,24 +17,9 @@ function Home() {
     const [nextMileage, setNextMileage] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSale, setSelectedSale] = useState(null);
-    const [carModal, setCarModal] = useState(false);
+    const [receiptModal, setreceiptModal] = useState(false);
     const [userCars, setUserCars] = useState([]);
-
-    const [carName, setCarName] = useState('');
-    const [registrationNo, setRegistrationNo] = useState('');
-
-    const handleAddCar = (e) => {
-        e.preventDefault();
-
-        const newCar = {
-            name: carName,
-            registrationNo: registrationNo
-        };
-
-        setUserCars([...userCars, newCar]);
-
-        setCarModal(false);
-    };
+    const [receipt, setReceipt] = useState();
 
     useEffect(() => {
         fetchSales();
@@ -49,6 +36,7 @@ function Home() {
                 }
             });    
             const data = await response.json();
+            console.log(data, 'iiiii')
             setSales(data);
         } catch (error) {
             console.error('Error fetching sales:', error);
@@ -70,6 +58,7 @@ function Home() {
             const response = await fetch(`http://localhost:3001/customers/${customerId}/cars`);
             const data = await response.json();
             setUserCars(data);
+            return data
         } catch (error) {
             console.error('Error fetching user cars:', error);
         }
@@ -108,7 +97,6 @@ function Home() {
         }
     
         const totalAmount = selectedProduct.price * parseInt(quantity);
-        console.log(car)
         const newSale = {
             customer_id: customerId,
             oil_id: productId,
@@ -193,7 +181,6 @@ function Home() {
     const filteredSales = sales.filter(sale =>{
         const customer = customers.find(cust => cust.id == sale.customer_id);
         const product = products.find(prod => prod.id == sale.oil_id);
-        console.log(customer, 'innnnn')
 
         return sale.car_reg_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -201,13 +188,56 @@ function Home() {
     }
     );
 
-    useEffect(() => {
-    }, [handleAddSale]);
-
-    const showCarModal = (e) => {
-        setShow(false)
-        setCarModal(true)
+    const testAPI = async () => {
+        const apiToken = "ce14f29f441e55b1614c902df9b71a710e21188981"; // Your api_token key.
+        const apiSecret = "KjrFrSICrltXwjQXIFmHR"; // Your api_token key.
+        const to = "923044747496"; // Multiple mobile numbers separated by comma.
+        const from = "Oil Sales"; // Sender ID, Max 6 characters long.
+        const message = "Checking if this is working"; // Your message to send.
+    
+        const url = "https://lifetimesms.com/json"; // API URL
+    
+        // Prepare your post parameters
+        const params = {
+            api_token: apiToken,
+            api_secret: apiSecret,
+            to: to,
+            from: from,
+            message: message
+        };
+    
+        try {
+            const response = await axios.get(url, { params });
+            console.log(response.data); // Log the response data
+            // Handle success, if needed
+        } catch (error) {
+            console.error('Error:', error); // Log any errors
+            // Handle errors, if needed
+        }
     };
+
+    const handleShowReceipt = (sale) => {
+        const customer = customers.find(cust => cust.id == sale.customer_id);
+        const product = products.find(prod => prod.id == sale.oil_id);
+        const info = {
+            name: customer.name,
+            phone: customer.number,
+            email: customer.email,
+            date: sale.date,
+            amount: sale.bill_amount,
+            quantity: sale.oil_quantity,
+            carname: sale.car_name,
+            regNo: sale.car_reg_number,
+            current: sale.current_mileage,
+            next: sale.next_mileage,
+            oil: product.name
+        };
+        setReceipt(info)
+        setreceiptModal(true)
+    }
+    useEffect(() => {
+        console.log(userCars)
+    }, [fetchUserCars]);
 
     return (
         <div className='container'>
@@ -231,6 +261,7 @@ function Home() {
                         </Button>
                     </div>
                 </div>
+                {/* <button onClick={testAPI}>test</button> */}
                 <div className="row">
                     <div className="table-responsive " >
                         <table className="table table-striped table-hover table-bordered">
@@ -251,7 +282,6 @@ function Home() {
                                 {filteredSales.map((sale, index) => {
                                     const customer = customers.find(cust => cust.id == sale.customer_id);
                                     const product = products.find(prod => prod.id == sale.oil_id);
-                                    console.log(customer, product, sale)
                                     return (
                                         <tr key={index}>
                                             <td>{customer ? customer.name : ''}</td>
@@ -265,6 +295,7 @@ function Home() {
                                             <td>
                                                 <a href="#" onClick={() => handleEditSale(sale)} className="edit" title="Edit" data-toggle="tooltip"><i className="material-icons">&#xE254;</i></a>
                                                 <a href="#" onClick={() => handleDeleteSale(sale)} className="delete" title="Delete" data-toggle="tooltip" style={{ color: "red" }}><i className="material-icons">&#xE872;</i></a>
+                                                <a href="#" onClick={() => handleShowReceipt(sale)} className="viewreceipt" title="view receipt" data-toggle="tooltip" style={{color:"#10ab80"}}><i className="material-icons">&#xE417;</i></a>
                                             </td>
                                         </tr>
                                     );
@@ -328,48 +359,21 @@ function Home() {
                         </Modal.Body>
                     </Modal>
                 </div>
-                <div className="model_box">
+                <div className="model_box receipt">
                     <Modal
-                        show={carModal}
-                        onHide={() => {
-                            setCarModal(false); // Close the car modal
-                            setShow(true); // Open the sale modal
-                        }}
+                        show={receiptModal}
+                        onHide={() =>
+                            setreceiptModal(false)
+                        }
                         backdrop="static"
                         keyboard={false}
+                        className="receipt"
                     >
                         <Modal.Header closeButton>
-                            <Modal.Title>Add New Car</Modal.Title>
+                            <Modal.Title>Sale Receipt</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <form onSubmit={handleAddCar}>
-                                <div className="form-group">
-                                    <input
-                                        required
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Car Name"
-                                        value={carName}
-                                        onChange={(e) => setCarName(e.target.value)}
-                                    />
-                                </div>
-                                <div className="form-group my-3">
-                                    <input
-                                        required
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Registration Number"
-                                        value={registrationNo}
-                                        onChange={(e) => setRegistrationNo(e.target.value)}
-                                    />
-                                </div>
-                                <Button variant="primary" className="me-3" type="submit">
-                                    Add Car
-                                </Button>
-                                <Button variant="secondary" onClick={() => setCarModal(false)}>
-                                    Cancel
-                                </Button>
-                            </form>
+                            <Receipt info={receipt}/>
                         </Modal.Body>
                     </Modal>
                 </div>

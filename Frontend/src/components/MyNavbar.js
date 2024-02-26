@@ -1,4 +1,4 @@
-
+import React from 'react'
 import { Link } from "react-router-dom";
 import { Container, Nav, Navbar } from 'react-bootstrap';
 
@@ -25,7 +25,7 @@ const MyNavbar = () => {
                         </Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
-            </Container>
+            </Container>  
         </Navbar>
     );
 }

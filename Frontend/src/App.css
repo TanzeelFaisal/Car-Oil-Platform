@@ -17,7 +17,13 @@
 
 .fa-download {
   cursor: pointer;
-  transform: translate(245px, 40px);
+  float: right;
+  transform: translate(-20px, 10px);
+}
+
+.receipt  .modal-content{
+  width: 160mm !important;
+  transform: translateX(-50px);
 }
 
 #receipt {

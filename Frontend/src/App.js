@@ -6,6 +6,7 @@ import MyNavbar from './components/MyNavbar';
 import Products from './Products';
 import Cars from './Cars';
 import Receipt from './components/Receipt';
+import React from 'react'
  
 function App() {
   return (
