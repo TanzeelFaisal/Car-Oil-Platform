@@ -57,7 +57,6 @@ app.post('/customers', (req, res) => {
     const { name, phoneNumber, email, address } = req.body;
     pool.query('INSERT INTO Customer (name, number, email, address) VALUES (?, ?, ?, ?)', [name, phoneNumber, email, address], (error, results) => {
         if (error) {
-            console.log(error)
             res.status(500).json({ error: error });
         } else {
             res.json({ message: 'Customer added successfully' });
@@ -102,7 +101,6 @@ app.get('/customers/:customerId/cars', (req, res) => {
     const customerId = req.params.customerId;
     pool.query('SELECT * FROM Car INNER JOIN Customer ON Car.customer_id = Customer.id WHERE Car.customer_id = ?', [customerId], (error, results) => {
         if (error) {
-            console.log(error)
             res.status(500).json({ error: 'Error fetching customer cars' });
         } else {
             res.json(results);

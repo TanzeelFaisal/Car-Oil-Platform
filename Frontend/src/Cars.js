@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 
 function Cars() {
     const [show, setShow] = useState(false);
@@ -50,8 +51,12 @@ function Cars() {
             reg_number: form.regNumber.value
         };
 
+        if (!newCar.customer_id || !newCar.car_name || !newCar.reg_number) {
+            toast.error('Enter complete car details')
+            return
+        }
         try {
-            await fetch('http://localhost:3001/cars', {
+            const response = await fetch('http://localhost:3001/cars', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -59,8 +64,12 @@ function Cars() {
                 body: JSON.stringify(newCar)
             });
             fetchCars();
+            if (response.ok)   
+                toast.success('Car added successfully')
+            else
+            toast.error('Car already exists for customer');
         } catch (error) {
-            console.error('Error adding car:', error);
+            toast.error('Car already exists for customer');
         }
 
         handleClose();
@@ -77,11 +86,12 @@ function Cars() {
         const updatedCar = {
             ...selectedCar,
             car_name: form.carName.value,
-            reg_number: form.regNumber.value
+            reg_number: form.regNumber.value,
+            customer_id: customerId
         };
 
         try {
-            await fetch(`http://localhost:3001/cars/${selectedCar.id}`, {
+            const response = await fetch(`http://localhost:3001/cars/${selectedCar.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -89,8 +99,12 @@ function Cars() {
                 body: JSON.stringify(updatedCar)
             });
             fetchCars();
+            if (response.ok) 
+                toast.success('Car updated successfully')
+            else
+                toast.error('Car already exists for customer')
         } catch (error) {
-            console.error('Error updating car:', error);
+            toast.error('Car already exists for customer')
         }
 
         handleClose();
@@ -98,12 +112,16 @@ function Cars() {
 
     const handleDeleteCar = async (carId) => {
         try {
-            await fetch(`http://localhost:3001/cars/${carId}`, {
+            const response = await fetch(`http://localhost:3001/cars/${carId}`, {
                 method: 'DELETE'
             });
             fetchCars();
+            if (response.ok)
+                toast.success('Car deleted successfully')
+            else
+                toast.error('Error deleting car');
         } catch (error) {
-            console.error('Error deleting car:', error);
+            toast.error('Error deleting car');
         }
     };
 
@@ -183,15 +201,15 @@ function Cars() {
                             <form onSubmit={selectedCar ? handleUpdateCar : handleAddCar}>
                                 <div className="form-group">
                                     <label htmlFor="carName">Car Name:</label>
-                                    <input type="text" className="form-control" id="carName" placeholder="Enter Car Name" value={selectedCar && selectedCar.car_name} />
+                                    <input type="text" className="form-control" id="carName" placeholder="Enter Car Name" defaultValue={selectedCar && selectedCar.car_name} />
                                 </div>
                                 <div className="form-group mt-3">
                                     <label htmlFor="regNumber">Registration Number:</label>
-                                    <input type="text" className="form-control" id="regNumber" placeholder="Enter Registration Number" value={selectedCar && selectedCar.reg_number} />
+                                    <input type="text" className="form-control" id="regNumber" placeholder="Enter Registration Number" defaultValue={selectedCar && selectedCar.reg_number} />
                                 </div>
                                 <div className="form-group mt-3">
                                     <label htmlFor="customerId">Select Customer:</label>
-                                    <select className="form-control" id="customerId" onChange={(e) => setCustomerId(e.target.value)} value={selectedCar && selectedCar.customer_id}>
+                                    <select className="form-control" id="customerId" onChange={(e) => setCustomerId(e.target.value)} defaultValue={selectedCar && selectedCar.customer_id}>
                                         <option value="">Select Customer</option>
                                         {customers.map(customer => (
                                             <option key={customer.id} value={customer.id}>{customer.name}</option>

@@ -7,6 +7,8 @@ import Products from './Products';
 import Cars from './Cars';
 import Receipt from './components/Receipt';
 import React from 'react'
+import { ToastContainer, Zoom } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
  
 function App() {
   return (
@@ -21,6 +23,7 @@ function App() {
           <Route path="/reciept" element={<Receipt />} />
         </Routes>
       </Router>
+      <ToastContainer autoClose={3000} theme='colored' hideProgressBar transition={Zoom}/>
     </div>
   );
 }

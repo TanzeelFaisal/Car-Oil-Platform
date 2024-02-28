@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 
 function Customers() {
     const [show, setShow] = useState(false);
@@ -28,7 +29,6 @@ function Customers() {
             });
             const data = await response.json();
             setCustomers(data);
-            console.log(data)
         } catch (error) {
             console.error('Error fetching customers:', error);
         }
@@ -44,8 +44,13 @@ function Customers() {
             address: form.address.value
         };
 
+        if (!newCustomer.name || !newCustomer.phoneNumber || !newCustomer.email || !newCustomer.address)  {
+            toast.error('Enter complete customer details')
+            return
+        }
+
         try {
-            await fetch('http://localhost:3001/customers', {
+            const response = await fetch('http://localhost:3001/customers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -53,8 +58,13 @@ function Customers() {
                 body: JSON.stringify(newCustomer)
             });
             fetchCustomers();
+            if (response.ok)
+                toast.success('Customer added successfully')
+            else
+                toast.error('Customer already exists. Enter unique email and password');
+
         } catch (error) {
-            console.error('Error adding customer:', error);
+            toast.error('Customer already exists. Enter unique email and password');
         }
 
         handleClose();
@@ -85,8 +95,9 @@ function Customers() {
                 body: JSON.stringify(updatedCustomer)
             });
             fetchCustomers();
+            toast.success('Customer updated successfully')
         } catch (error) {
-            console.error('Error updating customer:', error);
+            toast.error('Error updating customer');
         }
 
         handleClose();
@@ -98,8 +109,9 @@ function Customers() {
                 method: 'DELETE'
             });
             fetchCustomers();
+            toast.success('Customer deleted successfully')
         } catch (error) {
-            console.error('Error deleting customer:', error);
+            toast.error('Error deleting customer');
         }
     };
 

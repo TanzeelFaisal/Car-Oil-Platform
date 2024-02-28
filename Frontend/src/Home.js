@@ -2,6 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import React, { useEffect, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import Receipt from "./components/Receipt";
+import {toast} from 'react-toastify'
 // import axios from 'axios';
 
 function Home() {
@@ -35,8 +36,8 @@ function Home() {
                     'Content-Type': 'application/json'
                 }
             });    
-            const data = await response.json();
-            console.log(data, 'iiiii')
+            let data = await response.json();
+            data = data.sort((a, b) => new Date(b.date) - new Date(a.date));
             setSales(data);
         } catch (error) {
             console.error('Error fetching sales:', error);
@@ -89,9 +90,14 @@ function Home() {
 
     const handleAddSale = async (e) => {
         e.preventDefault();
+        if (!customerId || !productId || !nextMileage || !currentMileage || !car) {
+            toast.error('Enter complete details')
+            return
+        }
         const selectedProduct = products.find(product => product.id === parseInt(productId));
     
         const totalAmount = selectedProduct.price * parseInt(quantity);
+        
 
         const newSale = {
             customer_id: customerId,
@@ -101,7 +107,7 @@ function Home() {
             current_mileage: currentMileage,
             next_mileage: nextMileage,
             bill_amount: totalAmount,
-            date: new Date().toLocaleDateString()
+            date: new Date().toLocaleString()
         };
         const selectedCustomer = customers.find(customer => customer.id === parseInt(customerId));
         try {
@@ -116,17 +122,18 @@ function Home() {
                 fetchSales();
                 handleClose();
                 sendText(selectedCustomer.number, `Your purchase of ${totalAmount} was confirmed for your car with the registration number: ${car}.`);
+                toast.success('Sale added successfully')
             } else if (response.status == 400) {
-                alert('Stock is lesser than the quantity entered!');
+                toast.error('Stock is lesser than the quantity entered!');
             } else {
-                console.error('Error adding sale:', response.statusText);
+                toast.error('Error adding sale');
             }
         } catch (error) {
-            console.error('Error adding sale:', error);
+            toast.error('Error adding sale');
         }
     };
 
-    const sendText = async (recipient, textmessage) => {    
+    const sendText = async (recipient, textmessage) => { 
         const body = {
             recipient: recipient,
             textmessage: textmessage
@@ -139,31 +146,38 @@ function Home() {
             },
             body: JSON.stringify(body)
         }).then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
+            toast.success('Message sent to user successfully')
             })
-            .then(data => {
-                console.log('Response from server:', data);
-            })
-            .catch(error => {
-                console.error('Error sending text:', error);
-            });
+        .catch(error => {
+            toast.error('Error sending text. Balance low')
+        });
     };
 
     const handleEditSale = (sale) => {
+        setCustomerId(sale.customer_id)
+        setProductId(sale.oil_id)
+        setQuantity(sale.oil_quantity)
+        setCurrentMileage(sale.current_mileage)
+        setNextMileage(sale.next_mileage)
+        setCar(sale.car_reg_number)
         setSelectedSale(sale);
         handleShow();
+        fetchUserCars(sale.customer_id)
     };
 
     const handleUpdateSale = async (e) => {
         e.preventDefault()
+        const selectedProduct = products.find(product => product.id === parseInt(productId));
+    
+        const totalAmount = selectedProduct.price * parseInt(quantity);
         const updatedSale = {
-            customerId,
-            productId,
-            quantity: parseInt(quantity),
-            car
+            customer_id: customerId,
+            oil_id: productId,
+            car_reg_number: car,
+            next_mileage: nextMileage,
+            current_mileage: currentMileage,
+            oil_quantity: parseInt(quantity),
+            bill_amount: totalAmount
         };
         try {
             const response = await fetch(`http://localhost:3001/sales/${selectedSale.id}`, {
@@ -176,11 +190,12 @@ function Home() {
             if (response.ok) {
                 fetchSales();
                 handleClose();
+                toast.success('Sale updated successfully')
             } else {
-                console.error('Error updating sale:', response.statusText);
+                toast.error('Error updating sale');
             }
         } catch (error) {
-            console.error('Error updating sale:', error);
+            toast.error('Error updating sale');
         }
     };
 
@@ -191,11 +206,12 @@ function Home() {
             });
             if (response.ok) {
                 fetchSales();
+                toast.success('Sale removed successfully')
             } else {
-                console.error('Error deleting sale:', response.statusText);
+                toast.error('Error deleting sale');
             }
         } catch (error) {
-            console.error('Error deleting sale:', error);
+            toast.error('Error deleting sale');
         }
     };
 
@@ -212,40 +228,6 @@ function Home() {
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     }
     );
-
-    // const testAPI = async () => {
-    //     // const apiToken = "ce14f29f441e55b1614c902df9b71a710e21188981"; // Your api_token key.
-    //     // const apiSecret = "KjrFrSICrltXwjQXIFmHR"; // Your api_token key.
-    //     // const to = "923044747496"; // Multiple mobile numbers separated by comma.
-    //     // const from = "Oil Sales"; // Sender ID, Max 6 characters long.
-    //     // const message = "Checking if this is working"; // Your message to send.
-    
-    //     // const url = "https://lifetimesms.com/json"; // API URL
-    
-    //     // // Prepare your post parameters
-    //     // const params = {
-    //     //     api_token: apiToken,
-    //     //     api_secret: apiSecret,
-    //     //     to: to,
-    //     //     from: from,
-    //     //     message: message
-    //     // };
-    
-    //     // try {
-    //     //     const response = await axios.get(url, { params });
-    //     //     console.log(response.data); // Log the response data
-    //     //     // Handle success, if needed
-    //     // } catch (error) {
-    //     //     console.error('Error:', error); // Log any errors
-    //     //     // Handle errors, if needed
-    //     // }
-
-    //     const params = {
-    //         APIKey: 'e6a6053a2b97513b9b734739ac2e87f9',
-    //         receivenum: '923044747496',
-    //         sendnum: 'Default'
-    //     }
-    // };
 
     const handleShowReceipt = (sale) => {
         const customer = customers.find(cust => cust.id == sale.customer_id);
@@ -266,9 +248,6 @@ function Home() {
         setReceipt(info)
         setreceiptModal(true)
     }
-    useEffect(() => {
-        console.log(userCars)
-    }, [fetchUserCars]);
 
     return (
         <div className='container'>
@@ -321,7 +300,7 @@ function Home() {
                                             <td>{sale.bill_amount}</td>
                                             <td>{sale.current_mileage}</td>
                                             <td>{sale.next_mileage}</td>
-                                            <td>{sale.date}</td>
+                                            <td>{new Date(sale.date).toLocaleDateString()}</td>
                                             <td>
                                                 <a href="#" onClick={() => handleEditSale(sale)} className="edit" title="Edit" data-toggle="tooltip"><i className="material-icons">&#xE254;</i></a>
                                                 <a href="#" onClick={() => handleDeleteSale(sale)} className="delete" title="Delete" data-toggle="tooltip" style={{ color: "red" }}><i className="material-icons">&#xE872;</i></a>
@@ -348,16 +327,17 @@ function Home() {
                         <Modal.Body>
                             <form onSubmit={selectedSale ? handleUpdateSale : handleAddSale}>
                                 <div className="form-group">
-                                    <select className="form-control" onChange={(e) => { setCustomerId(e.target.value); fetchUserCars(e.target.value) } } value={selectedSale && selectedSale.customerId}>
+                                    <select className="form-control" onChange={(e) => { setCustomerId(e.target.value); fetchUserCars(e.target.value) } } defaultValue={customerId}>
                                         <option value="">Select Customer</option>
+                                        
                                         {customers.map(customer => (
                                             <option key={customer.id} value={customer.id}>{customer.name}</option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="form-group mt-3">
-                                    {customerId && (
-                                        <select className="form-control" onChange={(e) => setCar(e.target.value)} value={car}>
+                                    {(customerId || selectedSale) && (
+                                        <select className="form-control" onChange={(e) => setCar(e.target.value)} defaultValue={car}>
                                             <option value="">Select Car</option>
                                             {userCars.map(car => (
                                                 <option key={car.reg_number} value={car.reg_number}>{car.reg_number}</option>
@@ -366,13 +346,13 @@ function Home() {
                                     )}
                                 </div>
                                 <div className="form-group mt-3">
-                                    <input required type="number" className="form-control" placeholder="Enter Current Mileage" value={currentMileage} onChange={(e) => setCurrentMileage(e.target.value)} />
+                                    <input required type="number" className="form-control" placeholder="Enter Current Mileage" defaultValue={currentMileage} onChange={(e) => setCurrentMileage(e.target.value)} />
                                 </div>
                                 <div className="form-group mt-3">
-                                    <input required type="number" className="form-control" placeholder="Enter Next Mileage" value={nextMileage} onChange={(e) => setNextMileage(e.target.value)} />
+                                    <input required type="number" className="form-control" placeholder="Enter Next Mileage" defaultValue={nextMileage} onChange={(e) => setNextMileage(e.target.value)} />
                                 </div>
                                 <div className="form-group mt-3">
-                                    <select className="form-control" onChange={(e) => setProductId(e.target.value)} value={selectedSale && selectedSale.productId}>
+                                    <select className="form-control" onChange={(e) => setProductId(e.target.value)} value={productId}>
                                         <option value="">Select Product</option>
                                         {products.map(product => (
                                             <option key={product.id} value={product.id}>{product.name}</option>
@@ -380,7 +360,7 @@ function Home() {
                                     </select>
                                 </div>
                                 <div className="form-group mt-3">
-                                    <input required type="number" className="form-control" placeholder="Enter Quantity" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+                                    <input required type="number" className="form-control" placeholder="Enter Quantity" defaultValue={quantity} onChange={(e) => setQuantity(e.target.value)} />
                                 </div>
                                 <br />
                                 <Button variant="primary" className="me-3" type="submit">{selectedSale ? 'Update Sale' : 'Add Sale'}</Button>
