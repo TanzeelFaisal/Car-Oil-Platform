@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS Sales (
     bill_amount DECIMAL(10, 2) NOT NULL,
     current_mileage INT NOT NULL,
     next_mileage INT NOT NULL,
-    date VARCHAR(20),
+    date VARCHAR(30),
     FOREIGN KEY (customer_id) REFERENCES Customer(id),
     FOREIGN KEY (oil_id) REFERENCES Oil(id)
 );

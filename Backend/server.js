@@ -1,12 +1,8 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const twilio = require('twilio');
+const https = require('https');
 const { dbConfig } = require('./config');
-
-const accountSID = 'AC0db2f0642cc961d1ef786172bb403afd'
-const authToken = '0ae388d13bb24c6c486a6d6c085c17ea'
-const client = new twilio(accountSID, authToken)
 
 const app = express();
 const port = 3001;
@@ -19,18 +15,50 @@ const pool = mysql.createPool(dbConfig);
 app.post('/send-text', (req, res) => {
     const { recipient, textmessage } = req.body
 
-    client.messages.create({
-        body: textmessage,
-        to: '+92' + recipient.slice(1),
-        from: '+16203495809'
-    }).then((message) => console.log(message.body));
+    // client.messages.create({
+    //     body: textmessage,
+    //     to: '+92' + recipient.slice(1),
+    //     from: '+16203495809'
+    // }).then((message) => console.log(message.body));
+
+    const url = 'https://api.veevotech.com/v3/sendsms';
+    const params = {
+        hash: 'e6a6053a2b97513b9b734739ac2e87f9',
+        receivernum: '92' + recipient.slice(1),
+        medium: 1,
+        sendernum: 'Default',
+        textmessage: textmessage
+    };
+
+    // Construct the URL with parameters
+    const queryParams = new URLSearchParams(params);
+    const fullUrl = `${url}?${queryParams}`;
+
+    // Make the GET request
+    https.get(fullUrl, (response) => {
+        let data = '';
+
+        // A chunk of data has been received.
+        response.on('data', (chunk) => {
+            data += chunk;
+        });
+
+        // The whole response has been received.
+        response.on('end', () => {
+            console.log(data);
+        });
+    }).on('error', (error) => {
+        res.status(500).json({ error: 'Error sending message' });
+    });
+    res.status(200).send('message sent')
 });
 
 app.post('/customers', (req, res) => {
     const { name, phoneNumber, email, address } = req.body;
     pool.query('INSERT INTO Customer (name, number, email, address) VALUES (?, ?, ?, ?)', [name, phoneNumber, email, address], (error, results) => {
         if (error) {
-            res.status(500).json({ error: 'Error adding customer' });
+            console.log(error)
+            res.status(500).json({ error: error });
         } else {
             res.json({ message: 'Customer added successfully' });
         }
@@ -151,7 +179,16 @@ app.put('/sales/:id', (req, res) => {
             console.error('Error updating sale:', err);
             res.status(500).json({ error: 'Internal server error' });
         } else {
-            res.status(200).json({ message: 'Sale updated successfully' });
+            const updateQuery = 'UPDATE Oil SET stock = stock - ? WHERE id = ?';
+            pool.query(updateQuery, [updatedSale.oil_quantity, updatedSale.oil_id], (err, result) => {
+                if (err) {
+                    console.error('Error updating stock level:', err);
+                    res.status(500).json({ error: 'Internal server error' });
+                } else {
+                    res.status(200).json({ message: 'Sale updated successfully' });
+                }
+            });
+            
         }
     });
 });
