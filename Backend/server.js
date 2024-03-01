@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const https = require('https');
 const { dbConfig } = require('./config');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const port = 3001;
@@ -12,14 +13,50 @@ app.use(cors())
 
 const pool = mysql.createPool(dbConfig);
 
+
+// Generate a random 6-digit OTP
+const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000);
+};
+
+// Create a Nodemailer transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    port: 465,
+    secure: true,
+    auth: {
+        user: 'wtoils202@gmail.com',
+        pass: 'oksy hdek zsoh jvic'
+    }
+});
+
+// Express route for sending OTP
+app.get('/otp', (req, res) => {
+    // Generate a 6-digit OTP
+    const otp = generateOTP();
+
+    // Email message configuration
+    const mailOptions = {
+        from: 'wtoils202@gmail.com',
+        to: 'muneebarshad2002@gmail.com',
+        subject: 'Your OTP (One Time Password)',
+        text: `Your OTP is: ${otp}`
+    };
+
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) { 
+            console.error('Error sending email:', error);
+            res.status(500).send('Error sending OTP');
+        } else {
+            console.log('Email sent: ' + info.response);
+            res.status(200).json({'otp': otp});
+        }
+    });
+});
+
 app.post('/send-text', (req, res) => {
     const { recipient, textmessage } = req.body
-
-    // client.messages.create({
-    //     body: textmessage,
-    //     to: '+92' + recipient.slice(1),
-    //     from: '+16203495809'
-    // }).then((message) => console.log(message.body));
 
     const url = 'https://api.veevotech.com/v3/sendsms';
     const params = {
