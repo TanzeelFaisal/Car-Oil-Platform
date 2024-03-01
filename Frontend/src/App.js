@@ -9,6 +9,7 @@ import Receipt from './components/Receipt';
 import React from 'react'
 import { ToastContainer, Zoom } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Login from './Login';
  
 function App() {
   return (
@@ -16,7 +17,8 @@ function App() {
       <Router>
         <MyNavbar/>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Login />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/customers" element={<Customers/>}></Route>
           <Route path="/products" element={<Products />} />
           <Route path="/cars" element={<Cars />} />

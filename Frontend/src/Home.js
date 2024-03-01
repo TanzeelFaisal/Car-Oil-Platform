@@ -121,7 +121,7 @@ function Home() {
             if (response.ok) {
                 fetchSales();
                 handleClose();
-                sendText(selectedCustomer.number, `Your purchase of ${totalAmount} was confirmed for your car with the registration number: ${car}.`);
+                //sendText(selectedCustomer.number, `Your purchase of ${totalAmount} was confirmed for your car with the registration number: ${car}.`);
                 toast.success('Sale added successfully')
             } else if (response.status == 400) {
                 toast.error('Stock is lesser than the quantity entered!');

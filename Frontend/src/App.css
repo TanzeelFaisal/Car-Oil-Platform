@@ -18,6 +18,43 @@
   font-family: "Poppins", sans-serif !important;
 }
 
+.login_form {
+  height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.login_form label {
+  font-size: 20px;
+  
+}
+
+.digit-group {
+	input {
+		width: 80px;
+		height: 100px;
+		background-color: #48484840;
+		border: none;
+		line-height: 50px;
+		text-align: center;
+		font-size: 24px;
+		font-weight: 200;
+		margin: 0 5px;
+    border-radius: 5px;
+	}
+
+  input::-webkit-inner-spin-button, ::-webkit-outer-spin-button {
+    display: none;
+  }
+
+	.splitter {
+		padding: 0 5px;
+		font-size: 24px;
+	}
+}
+
 .fa-download {
   cursor: pointer;
   float: right;
